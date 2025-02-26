@@ -38,7 +38,14 @@ def main(page: ft.Page):
         except Exception as error:
             t.value = "No se ha podido registrar correctamente"
         page.update()
-    b = ft.ElevatedButton(text="Registrar", on_click=register_user)
+    b = ft.ElevatedButton(text="Registrar", on_click=register_user,width=page.width*0.3,color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), side=ft.BorderSide(color=ft.colors.BLACK, width=1)),)
+    buttonLogin = ft.ElevatedButton(text="Ya estoy registrado",width=page.width*0.3,color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), side=ft.BorderSide(color=ft.colors.BLACK, width=1)),)
+    img = ft.Image(
+        src=f"Bitcoin.png",
+        width=50,
+        height=50,
+        fit=ft.ImageFit.CONTAIN,
+    )
     main_container = ft.Container(
     height=page.height,
     width=page.width,
@@ -52,20 +59,33 @@ def main(page: ft.Page):
         content=ft.Column(controls=[
             ft.Container(
                 width=None,
-                margin=ft.margin.only(top=page.height * 0.1),
+                height=None,
+                content=img,
+                margin=ft.margin.only(top=page.width*0.02,left=page.height*0.02)
+            ),
+            ft.Container(
                 content=tet,
                 alignment=ft.alignment.center
             ),
             ft.Container(
-                width=None,
-                margin=ft.margin.only(top=page.height * 0.05),
-                content=ft.Column([tb1, tb2, b, t]),
+                margin=ft.margin.only(top=page.height * 0.03),
+                content=ft.Column([tb1, tb2]),
                 alignment=ft.alignment.center
-            )
+            ),
+            ft.Container(
+                margin=ft.margin.only(top=15),
+                content=ft.Column([b,]),
+                alignment=ft.alignment.center
+            ),
+            ft.Container(
+                margin=ft.margin.only(top=5),
+                content=ft.Column([buttonLogin, t]),
+                alignment=ft.alignment.center
+            ),
             ],
         ),
-        bgcolor=ft.Colors.CYAN_50,
-        alignment=ft.alignment.center
+         bgcolor=ft.Colors.GREY_200,
+         border=ft.border.all(0.5, ft.Colors.BLACK)
     ),
         ],
     ),
