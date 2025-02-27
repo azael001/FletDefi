@@ -4,12 +4,11 @@ import flet
 from flet import *
 import datetime
 from functools import partial
-
 from pygments.cmdline import main_inner
 from pygments.lexer import default
 
 
-#Acuerdate  de instalar firease pip install pyrebase
+#Acuerdate  de instalar firease pip install pyrebase4
 config = {
     "apiKey": "AIzaSyBUipaFuHqb9lewOkHtVBzRIAKZWInFtYY",
     "authDomain": "loginflet-7b2ce.firebaseapp.com",
@@ -25,37 +24,55 @@ auth = firebase.auth()
 
 
 def main(page: ft.Page):
+    #Función para un correcto width del container
     if page.width < 500:
         container_width = page.width
     elif 500 <= page.width < 700:
         container_width = page.width * 0.7
     else:
         container_width = page.width * 0.5
-    tet=ft.Text("Regsitrarse", size=30,color='Blue')
-    tetLogin=ft.Text("Iniciar sesión", size=30,color='Blue')
-    tb1 = ft.TextField(label="Mail",width=page.width* 0.3 )
-    tb2 = ft.TextField(label="Password ", password=True, can_reveal_password=True,width=page.width* 0.3)
-    t = ft.Text()
+
+    ##Función Login
+    def login_user(e):
+        email = tb1.value
+        password = tb2.value
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            page.go("/main")
+        except Exception as error:
+            t.value = "No se ha podido Loguear correctamente"
+        page.update()
+
+    ##Función registro
     def register_user(e):
         email = tb1.value
         password = tb2.value
         try:
             user = auth.create_user_with_email_and_password(email, password)
-            t.value = "Usuario registrado exitosamente"
+            tb1.value=""
+            tb2.value=""
+            t.value="Usuario registrado correctamente.Introduzca mail y contraseña."
+            page.go("/")
         except Exception as error:
             t.value = "No se ha podido registrar correctamente"
         page.update()
-    b = ft.ElevatedButton(text="Registrar", on_click=register_user,width=page.width*0.3,color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), side=ft.BorderSide(color=ft.colors.BLACK, width=1)),)
-    blogin = ft.ElevatedButton(text="Loguearse", on_click=register_user,width=page.width*0.3,color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), side=ft.BorderSide(color=ft.colors.BLACK, width=1)),)
-    buttonLogin = ft.ElevatedButton(text="Ya estoy registrado",width=page.width*0.3,color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), side=ft.BorderSide(color=ft.colors.BLACK, width=1)), on_click=lambda e: page.go("/"))
-    buttonRegister = ft.ElevatedButton(text="No estoy registrado",width=page.width*0.3,color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), side=ft.BorderSide(color=ft.colors.BLACK, width=1)), on_click=lambda e: page.go("/store"))
 
-    img = ft.Image(
-        src=f"Bitcoin.png",
-        width=50,
-        height=50,
-        fit=ft.ImageFit.CONTAIN,
-    )
+    #Componentes de Login
+    tetLogin=ft.Text("Iniciar sesión", size=30,color='Blue')
+    buttonRegister = ft.ElevatedButton(text="No estoy registrado", width=page.width * 0.3, color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.BorderSide(color=ft.Colors.BLACK, width=1)),on_click=lambda e: page.go("/register"))
+    blogin = ft.ElevatedButton(text="Loguearse", on_click=login_user, width=page.width * 0.3, color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.BorderSide(color=ft.Colors.BLACK, width=1)), )
+
+
+    # Componentes de Registro
+    tet = ft.Text("Regsitrarse", size=30, color='Blue')
+    t = ft.Text()
+    b = ft.ElevatedButton(text="Registrar", on_click=register_user,width=page.width*0.3,color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), side=ft.BorderSide(color=ft.Colors.BLACK, width=1)),)
+    buttonLogin = ft.ElevatedButton(text="Ya estoy registrado", width=page.width * 0.3, color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.BorderSide(color=ft.Colors.BLACK, width=1)),on_click=lambda e: page.go("/"))
+
+    ##Componentes comunes Login y registro
+    tb1 = ft.TextField(label="Mail", width=page.width * 0.3)
+    tb2 = ft.TextField(label="Password ", password=True, can_reveal_password=True, width=page.width * 0.3)
+    img = ft.Image(src=f"Bitcoin.png",width=50,height=50,fit=ft.ImageFit.CONTAIN,)
 
     def route_change(route):
         page.views.clear()
@@ -112,10 +129,10 @@ def main(page: ft.Page):
         )
         page.update()
 
-        if page.route == "/store":
+        if page.route == "/register":
             page.views.append(
                 ft.View(
-                    "/store",
+                    "/register",
                     [
                         ft.Container(
                             height=page.height,
@@ -168,6 +185,18 @@ def main(page: ft.Page):
             )
             page.update()
 
+        if page.route == "/main":
+            page.views.append(
+                ft.View(
+                    "/main",
+                    [
+
+                    ]
+                 )
+             )
+            page.update()
+
+##Confgiuración del router
     def view_pop(view):
         page.views.pop()
         top_view = page.views[-1]
@@ -176,6 +205,5 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     page.go(page.route)
-
 
 ft.app(main, view=ft.AppView.WEB_BROWSER)
