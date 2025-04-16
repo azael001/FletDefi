@@ -8,7 +8,7 @@ from pygments.cmdline import main_inner
 from pygments.lexer import default
 
 
-#Acuerdate  de instalar firease pip install pyrebase4
+# Acuerdate  de instalar firebase pip install pyrebase4
 config = {
     "apiKey": "AIzaSyBUipaFuHqb9lewOkHtVBzRIAKZWInFtYY",
     "authDomain": "loginflet-7b2ce.firebaseapp.com",
@@ -24,7 +24,7 @@ auth = firebase.auth()
 
 
 def main(page: ft.Page):
-    #Función para un correcto width del container
+    # Función para un correcto width del container
     if page.width < 500:
         container_width = page.width
     elif 500 <= page.width < 700:
@@ -32,7 +32,7 @@ def main(page: ft.Page):
     else:
         container_width = page.width * 0.5
 
-    ##Función Login
+    # Función Login
     def login_user(e):
         email = tb1.value
         password = tb2.value
@@ -43,7 +43,7 @@ def main(page: ft.Page):
             t.value = "No se ha podido Loguear correctamente"
         page.update()
 
-    ##Función registro
+    # Función registro
     def register_user(e):
         email = tb1.value
         password = tb2.value
@@ -57,11 +57,10 @@ def main(page: ft.Page):
             t.value = "No se ha podido registrar correctamente"
         page.update()
 
-    #Componentes de Login
+    # Componentes de Login
     tetLogin=ft.Text("Iniciar sesión", size=30,color='Blue')
     buttonRegister = ft.ElevatedButton(text="No estoy registrado", width=page.width * 0.3, color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.BorderSide(color=ft.Colors.BLACK, width=1)),on_click=lambda e: page.go("/register"))
     blogin = ft.ElevatedButton(text="Loguearse", on_click=login_user, width=page.width * 0.3, color=ft.Colors.BLACK,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.BorderSide(color=ft.Colors.BLACK, width=1)), )
-
 
     # Componentes de Registro
     tet = ft.Text("Regsitrarse", size=30, color='Blue')
@@ -185,18 +184,125 @@ def main(page: ft.Page):
             )
             page.update()
 
+        carrito = {}
+
         if page.route == "/main":
+            cart_column = ft.Column()
+
+            def mostrar_carrito():
+                resumen = []
+                total = 0
+                for nombre, datos in carrito.items():
+                    subtotal = datos["precio"] * datos["cantidad"]
+                    total += subtotal
+                    resumen.append(ft.Text(f"{nombre}: {datos['cantidad']} x ${datos['precio']} = ${subtotal}"))
+
+                if not resumen:
+                    resumen.append(ft.Text("El carrito está vacío."))
+
+                resumen.append(ft.Text(f"Total: ${total}", weight="bold"))
+                cart_column.controls = resumen
+                page.update()
+
+            def create_product(i, name):
+                image_path = f"{name}.png"
+                cantidad_input = ft.TextField(
+                    label="Cantidad",
+                    width=100,
+                    value="1",
+                    keyboard_type=ft.KeyboardType.NUMBER
+                )
+
+                def agregar_al_carrito(e, p=i, producto_name=name):
+                    cantidad = cantidad_input.value
+                    if cantidad.isdigit() and int(cantidad) > 0:
+                        cantidad = int(cantidad)
+                        if producto_name in carrito:
+                            carrito[producto_name]["cantidad"] += cantidad
+                        else:
+                            carrito[producto_name] = {
+                                "precio": p * 10,
+                                "cantidad": cantidad
+                            }
+                        print(f"Agregado: {producto_name} ({cantidad})")
+                        mostrar_carrito()
+                    else:
+                        print("Cantidad inválida")
+
+                return ft.Container(
+                    width=400,
+                    height=420,
+                    bgcolor=ft.Colors.GREY_200,
+                    border_radius=10,
+                    border=ft.border.all(1, ft.Colors.GREY_600),
+                    padding=20,
+                    content=ft.Column(
+                        controls=[
+                            ft.Image(src=image_path, width=200, height=200, fit=ft.ImageFit.COVER),
+                            ft.Text(f"{name}", size=16, weight="bold"),
+                            ft.Text(f"Precio: ${i * 10}"),
+                            ft.Text(f"Unidades disponibles: {10 - i}"),
+                            cantidad_input,
+                            ft.ElevatedButton("Agregar al carrito", on_click=agregar_al_carrito)
+                        ],
+                        spacing=10
+                    )
+                )
+
+            productos = [
+                ("raton", "Raton"), ("teclado", "Teclado"), ("casco", "Cascos"),
+                ("pc", "PC"), ("mesa", "Mesa escritorio"), ("silla", "Silla escritorio"),
+                ("reposapies", "Reposa pies"), ("planta", "Planta"), ("microfono", "Microfono")
+            ]
+
+            lista_productos = [create_product(i + 1, name) for i, (name, _) in enumerate(productos)]
+
+            rows = []
+            products_per_row = 4
+            for i in range(0, len(lista_productos), products_per_row):
+                row_products = lista_productos[i:i + products_per_row]
+                row = ft.Row(
+                    controls=row_products,
+                    alignment=ft.MainAxisAlignment.START,
+                    spacing=40
+                )
+                rows.append(ft.Container(content=row, margin=ft.margin.only(bottom=30)))
+
             page.views.append(
                 ft.View(
                     "/main",
-                    [
-
+                    controls=[
+                        ft.AppBar(title=ft.Text("Tienda"), bgcolor=ft.Colors.BLUE),
+                        ft.Container(
+                            expand=True,
+                            padding=10,
+                            content=ft.Column(
+                                controls=[
+                                    ft.ListView(
+                                        controls=rows,
+                                        expand=True,
+                                        padding=10
+                                    ),
+                                    ft.Divider(),
+                                    ft.Text("Carrito de compras", size=18, weight="bold"),
+                                    cart_column,
+                                    ft.ElevatedButton(
+                                        "Finalizar compra",
+                                        on_click=lambda e: (
+                                            carrito.clear(),
+                                            mostrar_carrito(),
+                                            print("Compra finalizada")
+                                        )
+                                    )
+                                ]
+                            )
+                        )
                     ]
-                 )
-             )
-            page.update()
+                )
+            )
 
-##Confgiuración del router
+            page.update()
+    ##Configuración del router
     def view_pop(view):
         page.views.pop()
         top_view = page.views[-1]
