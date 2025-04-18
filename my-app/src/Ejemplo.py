@@ -187,6 +187,21 @@ def main(page: ft.Page):
         carrito = {}
 
         if page.route == "/main":
+            productos = [
+                {"nombre": "raton", "precio": 25, "stock": 255},
+                {"nombre": "teclado", "precio": 45, "stock": 259},
+                {"nombre": "casco", "precio": 30, "stock": 150},
+                {"nombre": "pc", "precio": 550, "stock": 143},
+                {"nombre": "mesa", "precio": 80, "stock": 220},
+                {"nombre": "silla", "precio": 60, "stock":135},
+                {"nombre": "reposapies", "precio": 20, "stock": 63},
+                {"nombre": "microfono", "precio": 40, "stock": 139},
+                {"nombre": "impresora", "precio": 100, "stock": 145},
+                {"nombre": "pack-boligrafo", "precio": 5, "stock": 1110},
+                {"nombre": "folios", "precio": 10, "stock": 500},
+                {"nombre": "portatil", "precio": 750, "stock": 50}
+            ]
+
             cart_column = ft.Column()
 
             def mostrar_carrito():
@@ -195,17 +210,30 @@ def main(page: ft.Page):
                 for nombre, datos in carrito.items():
                     subtotal = datos["precio"] * datos["cantidad"]
                     total += subtotal
-                    resumen.append(ft.Text(f"{nombre}: {datos['cantidad']} x ${datos['precio']} = ${subtotal}"))
+                    resumen.append(
+                        ft.Row(
+                            controls=[
+                                ft.Image(src=f"{nombre}.png", width=50, height=50),
+                                ft.Text(
+                                    f"{nombre.capitalize()}: {datos['cantidad']} x ${datos['precio']} = ${subtotal}")
+                            ],
+                            alignment=ft.MainAxisAlignment.START,
+                            vertical_alignment=ft.CrossAxisAlignment.CENTER
+                        )
+                    )
 
                 if not resumen:
                     resumen.append(ft.Text("El carrito está vacío."))
-
                 resumen.append(ft.Text(f"Total: ${total}", weight="bold"))
                 cart_column.controls = resumen
                 page.update()
 
-            def create_product(i, name):
+            def create_product(producto):
+                name = producto["nombre"]
+                precio = producto["precio"]
+                stock = producto["stock"]
                 image_path = f"{name}.png"
+
                 cantidad_input = ft.TextField(
                     label="Cantidad",
                     width=100,
@@ -213,15 +241,22 @@ def main(page: ft.Page):
                     keyboard_type=ft.KeyboardType.NUMBER
                 )
 
-                def agregar_al_carrito(e, p=i, producto_name=name):
+                def agregar_al_carrito(e, producto_name=name, producto_precio=precio, producto_stock=stock):
                     cantidad = cantidad_input.value
                     if cantidad.isdigit() and int(cantidad) > 0:
                         cantidad = int(cantidad)
                         if producto_name in carrito:
-                            carrito[producto_name]["cantidad"] += cantidad
+                            nueva_cantidad = carrito[producto_name]["cantidad"] + cantidad
+                            if nueva_cantidad > producto_stock:
+                                print("Supera el stock disponible.")
+                                return
+                            carrito[producto_name]["cantidad"] = nueva_cantidad
                         else:
+                            if cantidad > producto_stock:
+                                print("No hay suficientes unidades disponibles.")
+                                return
                             carrito[producto_name] = {
-                                "precio": p * 10,
+                                "precio": producto_precio,
                                 "cantidad": cantidad
                             }
                         print(f"Agregado: {producto_name} ({cantidad})")
@@ -230,18 +265,21 @@ def main(page: ft.Page):
                         print("Cantidad inválida")
 
                 return ft.Container(
-                    width=400,
-                    height=420,
+                    width=420,
+                    height=450,
                     bgcolor=ft.Colors.GREY_200,
                     border_radius=10,
                     border=ft.border.all(1, ft.Colors.GREY_600),
                     padding=20,
                     content=ft.Column(
                         controls=[
-                            ft.Image(src=image_path, width=200, height=200, fit=ft.ImageFit.COVER),
-                            ft.Text(f"{name}", size=16, weight="bold"),
-                            ft.Text(f"Precio: ${i * 10}"),
-                            ft.Text(f"Unidades disponibles: {10 - i}"),
+                            ft.Container(
+                                alignment=ft.alignment.center,
+                                content=ft.Image(src=image_path, width=230, height=210, fit=ft.ImageFit.COVER)
+                            ),
+                            ft.Text(name.capitalize(), size=16, weight="bold"),
+                            ft.Text(f"Precio: ${precio}"),
+                            ft.Text(f"Unidades disponibles: {stock}"),
                             cantidad_input,
                             ft.ElevatedButton("Agregar al carrito", on_click=agregar_al_carrito)
                         ],
@@ -249,13 +287,7 @@ def main(page: ft.Page):
                     )
                 )
 
-            productos = [
-                ("raton", "Raton"), ("teclado", "Teclado"), ("casco", "Cascos"),
-                ("pc", "PC"), ("mesa", "Mesa escritorio"), ("silla", "Silla escritorio"),
-                ("reposapies", "Reposa pies"), ("planta", "Planta"), ("microfono", "Microfono")
-            ]
-
-            lista_productos = [create_product(i + 1, name) for i, (name, _) in enumerate(productos)]
+            lista_productos = [create_product(p) for p in productos]
 
             rows = []
             products_per_row = 4
@@ -272,7 +304,7 @@ def main(page: ft.Page):
                 ft.View(
                     "/main",
                     controls=[
-                        ft.AppBar(title=ft.Text("Tienda"), bgcolor=ft.Colors.BLUE),
+                        ft.AppBar(title=ft.Text("Almacen"), bgcolor=ft.Colors.BLUE),
                         ft.Container(
                             expand=True,
                             padding=10,
@@ -284,14 +316,14 @@ def main(page: ft.Page):
                                         padding=10
                                     ),
                                     ft.Divider(),
-                                    ft.Text("Carrito de compras", size=18, weight="bold"),
+                                    ft.Text("Carrito ", size=18, weight="bold"),
                                     cart_column,
                                     ft.ElevatedButton(
-                                        "Finalizar compra",
+                                        "Finalizar pedido",
                                         on_click=lambda e: (
                                             carrito.clear(),
                                             mostrar_carrito(),
-                                            print("Compra finalizada")
+                                            print("Pedido finalizado")
                                         )
                                     )
                                 ]
@@ -300,8 +332,8 @@ def main(page: ft.Page):
                     ]
                 )
             )
-
             page.update()
+
     ##Configuración del router
     def view_pop(view):
         page.views.pop()
